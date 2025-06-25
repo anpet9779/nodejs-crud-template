@@ -1,17 +1,41 @@
 import "dotenv/config";
 import express from "express";
+// logging libraries
+import logger from "./logger.js";
+import morgan from "morgan";
+
 const app = express();
 
 const port = process.env.PORT || 3000;
 app.use(express.json());
+
+const morganFormat = ":method :url :status :response-time ms";
+
+// Middleware for logging
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        const logObject = {
+          method: message.split(" ")[0],
+          url: message.split(" ")[1],
+          status: message.split(" ")[2],
+          responseTime: message.split(" ")[3],
+        };
+        logger.info(JSON.stringify(logObject));
+      },
+    },
+  })
+);
 
 let teaData = [];
 let nextId = 1;
 
 /* Add Tea */
 app.post("/teas", (req, res) => {
+  //logger method can be used for colorful logging similar to console.log
+  logger.info("POST");
   const { name, price } = req.body;
-
   const newTea = { id: nextId++, name, price };
 
   teaData.push(newTea);
